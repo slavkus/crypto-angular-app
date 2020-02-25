@@ -21,6 +21,8 @@ export class CryptoChooserComponent implements OnInit {
   constructor(private client: HttpClient) { }
 
   coinControl = new FormControl();
+  urlAllCoins: string;
+  urlComplete: string;
 
   selectedCoins: any[] = [];
   // dataTable: object[];
@@ -81,16 +83,26 @@ export class CryptoChooserComponent implements OnInit {
   ];
 
   getCoins() {
-    const urlAllCoins = 'https://min-api.cryptocompare.com/data/all/coinlist';
-    return this.client.post(urlAllCoins, this.httpHeader)
+    this.generateUrl();
+    console.log('url: ' + this.urlComplete);
+    return this.client.get(this.urlComplete, this.httpHeader)
       .subscribe(data => {
-        // this.coins = data;
-        // this.dataTable = data as object[];
-        // console.log(this.dataTable);
-        // for (let element in this.dataTable) {
-        // console.log('Element object: ' + JSON.stringify(this.dataTable[element]));
-        // }
+        console.log(data);
       });
+  }
+
+  generateUrl() {
+    this.urlAllCoins = 'https://min-api.cryptocompare.com/data/pricemulti?fsyms=';
+    let counter = 0;
+    for (let item in this.selectedCoins) {
+      counter++;
+      this.urlAllCoins += this.selectedCoins[item];
+      if (counter < this.selectedCoins.length) {
+        this.urlAllCoins += ',';
+      }
+    }
+    this.urlAllCoins += '&tsyms=EUR';
+    this.urlComplete = this.urlAllCoins;
   }
 
   addCoins(item) {
@@ -99,7 +111,6 @@ export class CryptoChooserComponent implements OnInit {
     } else {
       this.selectedCoins.push(item);
     }
-    console.log(this.selectedCoins);
   }
 
   loadCoins() {
@@ -110,12 +121,7 @@ export class CryptoChooserComponent implements OnInit {
     this.selectedCoins = [];
   }
 
-  searchValue() {
-
-  }
-
   ngOnInit() {
-    this.getCoins();
   }
 
 }
