@@ -84,7 +84,6 @@ export class CryptoChooserComponent implements OnInit {
 
   getCoins() {
     this.generateUrl();
-    console.log('url: ' + this.urlComplete);
     return this.client.get(this.urlComplete, this.httpHeader)
       .subscribe(data => {
         console.log(data);
