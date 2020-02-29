@@ -1,13 +1,36 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { merge, Observable, of as observableOf } from 'rxjs';
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 
 export interface CoinsDropdown {
   coinName: string;
   coinAkronim: string;
+}
 
+/* export interface TableDataApi {
+  items: Tabledata[];
+  total_count: number;
+} */
+
+/* export interface Tabledata {
+  cryptovalue: {
+    currency: string;
+  };
+} */
+
+export interface Tabledata {
+  cryptovalue: {
+    [currency: string]: NestedData
+  };
+}
+
+export interface NestedData {
+  value: string;
 }
 
 @Component({
@@ -16,7 +39,7 @@ export interface CoinsDropdown {
   styleUrls: ['./crypto-chooser.component.css']
 })
 
-export class CryptoChooserComponent implements OnInit {
+export class CryptoChooserComponent implements OnInit, AfterViewInit {
 
   constructor(private client: HttpClient) { }
 
@@ -24,20 +47,27 @@ export class CryptoChooserComponent implements OnInit {
   urlAllCoins: string;
   urlComplete: string;
 
-  selectedCoins: any[] = [];
-  // dataTable: object[];
-  // coins: AllData[] = [];
+  selectedCoins: Tabledata[] = new Array();
+
+  // Table-related
+  displayedColumns = ['cryptocurrency', 'currency'];
+  dataSource: any[] = [];
+  // dataSource = new MatTableDataSource<Tabledata[]>();
+  resultsLength = 0;
+  isLoadingResults = false;
+
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+
   private apiKey = 'ca1d6ef7912560ba6a66cf19b93be5d2e842ec2cdc95bf9145d44928daa06bcb';
   private httpHeader = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': 'Apikey ' + this.apiKey,
+      Authorization: 'Apikey ' + this.apiKey,
     })
   };
 
-  // api key : ca1d6ef7912560ba6a66cf19b93be5d2e842ec2cdc95bf9145d44928daa06bcb
-  // API KEY in HEADER - add the following header to your request: authorization: Apikey {your_api_key}.
-  // https://www.cryptocompare.com/cryptopian/api-keys
+
 
   coins: CoinsDropdown[] = [
     {
@@ -82,18 +112,48 @@ export class CryptoChooserComponent implements OnInit {
     }
   ];
 
-  getCoins() {
-    this.generateUrl();
-    return this.client.get(this.urlComplete, this.httpHeader)
-      .subscribe(data => {
-        console.log(data);
+
+  initialiseTableData() {
+    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+
+    merge(this.sort.sortChange, this.paginator.page)
+      .pipe(
+        startWith({}),
+        switchMap(() => {
+          this.isLoadingResults = true;
+          return this.getCoins();
+        }),
+        map(data => {
+          this.isLoadingResults = false;
+          // this.resultsLength = data.total_count;
+          console.info("What is data? ", data);
+          return data;
+        }),
+        catchError(() => {
+          this.isLoadingResults = false;
+          return observableOf([]);
+        })
+      ).subscribe((data: Tabledata[]) => {
+        console.info("Subscribe: " + data);
+        this.dataSource = (data);
+        // this.dataSource.data = data;
+        console.info("An array with my object", this.dataSource);
+        console.info("Currency: ", this.dataSource[0].cryptovalue)
       });
+  }
+
+  ngAfterViewInit() {
+  }
+
+  getCoins(): Observable<Tabledata[]> {
+    this.generateUrl();
+    return this.client.get<Tabledata[]>(this.urlComplete, this.httpHeader);
   }
 
   generateUrl() {
     this.urlAllCoins = 'https://min-api.cryptocompare.com/data/pricemulti?fsyms=';
     let counter = 0;
-    for (let item in this.selectedCoins) {
+    for (const item in this.selectedCoins) {
       counter++;
       this.urlAllCoins += this.selectedCoins[item];
       if (counter < this.selectedCoins.length) {
@@ -124,6 +184,3 @@ export class CryptoChooserComponent implements OnInit {
   }
 
 }
-
-
-

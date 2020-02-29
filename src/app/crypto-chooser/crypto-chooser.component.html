@@ -24,4 +24,30 @@
 </div>
 
 <button (click)="removeList()">Reset</button>
-<button (click)="getCoins()">Display Value</button>
+<button (click)="initialiseTableData()">Display Value</button>
+
+
+<div class="example-container mat-elevation-z8">
+  <div class="example-loading-shade" *ngIf="isLoadingResults">
+    <mat-spinner *ngIf="isLoadingResults"></mat-spinner>
+  </div>
+  <mat-table #table [dataSource]="dataSource" class="example-table" matSort matSortActive="created" matSortDisableClear
+    matSortDirection="asc">
+
+    <ng-container matColumnDef="cryptocurrency">
+      <mat-header-cell *matHeaderCellDef>Cryptocurrency</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.cryptovalue }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="currency">
+      <mat-header-cell *matHeaderCellDef>Currency</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.currency }}</mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+
+  <mat-paginator [length]="resultsLength" [pageSize]="30">
+  </mat-paginator>
+</div>
