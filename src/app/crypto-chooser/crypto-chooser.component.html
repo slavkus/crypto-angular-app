@@ -36,12 +36,17 @@
 
     <ng-container matColumnDef="cryptocurrency">
       <mat-header-cell *matHeaderCellDef>Cryptocurrency</mat-header-cell>
-      <mat-cell *matCellDef="let row">{{ row.cryptovalue }}</mat-cell>
+      <mat-cell *matCellDef="let row">{{ row.cryptocurrency }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="currency">
       <mat-header-cell *matHeaderCellDef>Currency</mat-header-cell>
-      <mat-cell *matCellDef="let row">{{ row.currency }}</mat-cell>
+      <mat-cell *matCellDef="let row">{{ row.cryptocurrency.currency }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="value">
+      <mat-header-cell *matHeaderCellDef>Value</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.cryptocurrency.currency.value }}</mat-cell>
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>

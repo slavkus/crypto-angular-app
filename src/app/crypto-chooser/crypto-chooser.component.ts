@@ -5,7 +5,6 @@ import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
 
 export interface CoinsDropdown {
   coinName: string;
@@ -24,8 +23,10 @@ export interface CoinsDropdown {
 } */
 
 export interface Tabledata {
-  cryptovalue: {
-    [currency: string]: NestedData
+  cryptocurrency: {
+    currency: {
+      value: number;
+    }
   };
 }
 
@@ -50,7 +51,7 @@ export class CryptoChooserComponent implements OnInit, AfterViewInit {
   selectedCoins: Tabledata[] = new Array();
 
   // Table-related
-  displayedColumns = ['cryptocurrency', 'currency'];
+  displayedColumns = ['cryptocurrency', 'currency', 'value'];
   dataSource: any[] = [];
   // dataSource = new MatTableDataSource<Tabledata[]>();
   resultsLength = 0;
@@ -112,7 +113,6 @@ export class CryptoChooserComponent implements OnInit, AfterViewInit {
     }
   ];
 
-
   initialiseTableData() {
     this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
@@ -127,27 +127,33 @@ export class CryptoChooserComponent implements OnInit, AfterViewInit {
           this.isLoadingResults = false;
           // this.resultsLength = data.total_count;
           console.info("What is data? ", data);
-          return data;
+          return data; /* {
+            id: data.id,
+            cryptocurrency: data.id.cryptocurrency,
+            currency: data.id.cryptocurrency.currency,
+            value: data.id.cryptocurrency.currency.value
+          }; */
         }),
         catchError(() => {
           this.isLoadingResults = false;
           return observableOf([]);
         })
-      ).subscribe((data: Tabledata[]) => {
+      ).subscribe(data => {
         console.info("Subscribe: " + data);
-        this.dataSource = (data);
+        for (let item in data) {
+          this.dataSource.push(item);
+        }
         // this.dataSource.data = data;
         console.info("An array with my object", this.dataSource);
-        console.info("Currency: ", this.dataSource[0].cryptovalue)
       });
   }
 
   ngAfterViewInit() {
   }
 
-  getCoins(): Observable<Tabledata[]> {
+  getCoins(): Observable<Tabledata> {
     this.generateUrl();
-    return this.client.get<Tabledata[]>(this.urlComplete, this.httpHeader);
+    return this.client.get<Tabledata>(this.urlComplete, this.httpHeader);
   }
 
   generateUrl() {
@@ -182,5 +188,4 @@ export class CryptoChooserComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
   }
-
 }
