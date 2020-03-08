@@ -5,6 +5,7 @@ import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import axios, { AxiosResponse } from 'axios';
 
 export interface CoinsDropdown {
   coinName: string;
@@ -114,6 +115,26 @@ export class CryptoChooserComponent implements OnInit, AfterViewInit {
   ];
 
   initialiseTableData() {
+    this.generateUrl();
+    axios.get(this.urlComplete)
+      .then((response: AxiosResponse) => {
+        const data = [];
+        for (const key in response.data) {
+          if (response.data.hasOwnProperty(key)) {
+            console.log(`${key}`, response.data[key]);
+            const value = response.data[key];
+            data.push({
+              name: key,
+              currency: Object.entries(value)[0][0],
+              value: Object.entries(value)[0][1]
+            });
+          }
+        }
+        this.dataSource = data;
+      });
+  }
+
+  /* initialiseTableData() {
     this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(this.sort.sortChange, this.paginator.page)
@@ -132,7 +153,7 @@ export class CryptoChooserComponent implements OnInit, AfterViewInit {
             cryptocurrency: data.id.cryptocurrency,
             currency: data.id.cryptocurrency.currency,
             value: data.id.cryptocurrency.currency.value
-          }; */
+          };
         }),
         catchError(() => {
           this.isLoadingResults = false;
@@ -146,7 +167,7 @@ export class CryptoChooserComponent implements OnInit, AfterViewInit {
         // this.dataSource.data = data;
         console.info("An array with my object", this.dataSource);
       });
-  }
+  } */
 
   ngAfterViewInit() {
   }
